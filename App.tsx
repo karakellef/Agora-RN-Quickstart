@@ -1,21 +1,23 @@
-import React, { Component, createRef, useRef } from 'react';
+import React, { Component, createRef } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import RtcEngine, {
-  RtcLocalView,
-  RtcRemoteView,
-  VideoRenderMode,
-} from 'react-native-agora';
 
+// agora sdk
+import RtcEngine from 'react-native-agora';
+
+// lottieView for animation
 import LottieView from 'lottie-react-native';
+
+//permissions
 import requestCameraAndAudioPermission from './components/Permission';
+
+//styles
 import styles from './components/Style';
 
 interface Props {}
@@ -69,6 +71,8 @@ export default class App extends Component<Props, State> {
   init = async () => {
     const { appId } = this.state;
     this._engine = await RtcEngine.create(appId);
+
+    // Should enable the audio volume indicaton with interval, smooth and report_vad
     if (Platform.OS === 'android') {
       await this._engine.enableAudioVolumeIndication(1200,10,true)
     } else {
@@ -79,6 +83,7 @@ export default class App extends Component<Props, State> {
       // console.log('Warning', warn);
     });
 
+    // Re-usable Fixed-Array
     function getArrayWithLimitedLength(length) {
       var array = new Array();
   
@@ -90,13 +95,23 @@ export default class App extends Component<Props, State> {
       }
       return array;
     }
+
+    // Making Fixed-Array
     let tvArray = getArrayWithLimitedLength(10)
+
+    // Subscribing to AudioVolumeIndication for listen total volume
     this._engine.addListener('AudioVolumeIndication', (avi, tv)=> {
+
+          // Filling our fixed-array with total-volume data
           tvArray.push(tv)
           // console.log(tvArray)
+
+          // Setting data-filled fixed-array to a state
           this.setState({
             pitch: tvArray
           })
+
+          // Checks the data and deciding our animation to pausable or not
           const isPausable = () => {
             let res = 0;
             for (let i = 0; i < tvArray.length; i++) {
@@ -123,8 +138,10 @@ export default class App extends Component<Props, State> {
           //     return false;
           //   }
           // }
+
+            // This logic is doing the job on the animation
             if (this.state.animationOn) {
-              if (Platform.OS === 'android'?isPausable(): tv<30) {
+              if (Platform.OS === 'android' ? isPausable() : tv<30) {
                   this.setState({animationOn: false})
                   this.animation.current?.pause();
                 }
