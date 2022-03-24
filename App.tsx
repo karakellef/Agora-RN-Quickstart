@@ -72,7 +72,7 @@ export default class App extends Component<Props, State> {
     const { appId } = this.state;
     this._engine = await RtcEngine.create(appId);
 
-    // Must enable the audio volume indicaton with interval, smooth and report_vad
+    // Enables the audioVolumeIndicaton with interval, smooth and report_vad
     if (Platform.OS === 'android') {
       await this._engine.enableAudioVolumeIndication(1200,10,true)
     } else {
@@ -83,7 +83,8 @@ export default class App extends Component<Props, State> {
       // console.log('Warning', warn);
     });
 
-    // Re-usable fixed-array func, this returns fixed-array with decided length
+    // Re-usable fixed-array func, returns fixed-array with decided length
+    // Fixed-array overwrites the push method and when length hits the max-length fixed-array pops up the first element
     function getArrayWithLimitedLength(length) {
       var array = new Array();
   
@@ -96,7 +97,7 @@ export default class App extends Component<Props, State> {
       return array;
     }
 
-    // Making Fixed-Array
+    // Makes fixed-array
     let tvArray = getArrayWithLimitedLength(10)
 
     // Subscribes to AudioVolumeIndication and listens total volume
