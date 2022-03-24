@@ -140,7 +140,7 @@ export default class App extends Component<Props, State> {
           //   }
           // }
 
-            // This logic is doing the job on the animation
+            // This logic is doing the job on the animation actions
             if (this.state.animationOn) {
               if (Platform.OS === 'android' ? isPausable() : tv<30) {
                   this.setState({animationOn: false})
