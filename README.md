@@ -245,16 +245,3 @@ include ':lottie-react-native'
 project(':lottie-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/lottie-react-native/src/android')
 ```
 
-## More
-
-View more documentation, FAQ, help, examples, and more at [airbnb.io/lottie](https://airbnb.io/lottie/)
-
-![Example1](docs/gifs/Example1.gif)
-
-![Example2](docs/gifs/Example2.gif)
-
-![Example3](docs/gifs/Example3.gif)
-
-![Community](docs/gifs/Community%202_3.gif)
-
-![Example4](docs/gifs/Example4.gif)
