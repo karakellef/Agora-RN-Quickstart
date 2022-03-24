@@ -9,12 +9,30 @@ export default StyleSheet.create({
   max: {
     flex: 1,
   },
+  input: {
+    width: '80%',
+    marginVertical: dimensions.height / 75,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#999999',
+    borderRadius: 10
+  },
   buttonHolder: {
     height: 100,
     alignItems: 'center',
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
+  },
+  animationHolder: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  animation: {
+    width: dimensions.width,
+    alignSelf: 'center',
+    justifyContent: 'center'
   },
   button: {
     paddingHorizontal: 20,

@@ -1,8 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component, createRef, useRef } from 'react';
 import {
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -12,6 +14,7 @@ import RtcEngine, {
   VideoRenderMode,
 } from 'react-native-agora';
 
+import LottieView from 'lottie-react-native';
 import requestCameraAndAudioPermission from './components/Permission';
 import styles from './components/Style';
 
@@ -29,19 +32,24 @@ interface State {
   channelName: string;
   joinSucceed: boolean;
   peerIds: number[];
+  animationOn: boolean;
+  pitch: number[];
 }
+
 
 export default class App extends Component<Props, State> {
   _engine?: RtcEngine;
-
+  private animation = createRef<LottieView>()
   constructor(props) {
     super(props);
     this.state = {
-      appId: YourAppId,
-      token: YourToken,
-      channelName: 'channel-x',
+      appId: '92b2bc2a079e4d5a917edbd3401984cf',
+      token: '00692b2bc2a079e4d5a917edbd3401984cfIACeibuswFG+nHO/cgzgxU5ewADlS+uJ/gGrLsXN8rHQycRmA6UAAAAAIgA5BlQCwLI8YgQAAQBwiztiAwBwiztiAgBwiztiBABwizti',
+      channelName: 'cn',
       joinSucceed: false,
       peerIds: [],
+      animationOn: false,
+      pitch: []
     };
     if (Platform.OS === 'android') {
       // Request required permissions from Android
@@ -50,7 +58,6 @@ export default class App extends Component<Props, State> {
       });
     }
   }
-
   componentDidMount() {
     this.init();
   }
@@ -62,14 +69,75 @@ export default class App extends Component<Props, State> {
   init = async () => {
     const { appId } = this.state;
     this._engine = await RtcEngine.create(appId);
-    await this._engine.enableVideo();
+    if (Platform.OS === 'android') {
+      await this._engine.enableAudioVolumeIndication(1200,10,true)
+    } else {
+      await this._engine.enableAudioVolumeIndication(200,10,true)
+    }
 
     this._engine.addListener('Warning', (warn) => {
-      console.log('Warning', warn);
+      // console.log('Warning', warn);
+    });
+
+    function getArrayWithLimitedLength(length) {
+      var array = new Array();
+  
+      array.push = function () {
+          if (this.length >= length) {
+              this.shift();
+          }
+          return Array.prototype.push.apply(this,arguments);
+      }
+      return array;
+    }
+    let tvArray = getArrayWithLimitedLength(10)
+    this._engine.addListener('AudioVolumeIndication', (avi, tv)=> {
+          tvArray.push(tv)
+          // console.log(tvArray)
+          this.setState({
+            pitch: tvArray
+          })
+          const isPausable = () => {
+            let res = 0;
+            for (let i = 0; i < tvArray.length; i++) {
+              if (tvArray[i] < 50){
+                res += 1;
+              }
+            }
+            if(res>4){
+              return true;
+            } else {
+              return false;
+            }
+          }
+          // const isResumable = () => {
+          //   let res = 0;
+          //   for (let i = 0; i < tvArray.length; i++) {
+          //     if (tvArray[i] > 20){
+          //       res += 1;
+          //     } 
+          //   }
+          //   if(res>3){
+          //     return true;
+          //   } else {
+          //     return false;
+          //   }
+          // }
+            if (this.state.animationOn) {
+              if (Platform.OS === 'android'?isPausable(): tv<30) {
+                  this.setState({animationOn: false})
+                  this.animation.current?.pause();
+                }
+            } else {
+              if (tv > 30) {
+                  this.setState({animationOn: true})
+                  this.animation.current?.play();
+              }
+            }
     });
 
     this._engine.addListener('Error', (err) => {
-      console.log('Error', err);
+      // console.log('Error', err);
     });
 
     this._engine.addListener('UserJoined', (uid, elapsed) => {
@@ -129,56 +197,69 @@ export default class App extends Component<Props, State> {
 
   render() {
     return (
-      <View style={styles.max}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{flex:1}}
+      >
         <View style={styles.max}>
-          <View style={styles.buttonHolder}>
-            <TouchableOpacity onPress={this.startCall} style={styles.button}>
-              <Text style={styles.buttonText}> Start Call </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.endCall} style={styles.button}>
-              <Text style={styles.buttonText}> End Call </Text>
-            </TouchableOpacity>
+          <View style={styles.max}>
+            <View style={styles.buttonHolder}>
+              <TouchableOpacity onPress={this.startCall} style={styles.button}>
+                <Text style={styles.buttonText}> Start Call </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.endCall} style={styles.button}>
+                <Text style={styles.buttonText}> End Call </Text>
+              </TouchableOpacity>
+            </View>
+            {this.state.joinSucceed?
+            <View style={styles.animationHolder}>
+              {this._renderAnimation()}
+            </View>
+            :
+            <View style={styles.animationHolder}>
+              <TextInput
+                style={styles.input}
+                placeholder='App ID'
+                onChangeText={value => {this.setState({
+                  appId : value
+                });
+                console.log(this.state.appId)}}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder='Token'
+                onChangeText={value => this.setState({
+                  token : value
+                })}
+                />
+              <TextInput
+                style={styles.input}
+                placeholder='Channel Name'
+                onChangeText={value => this.setState({
+                  channelName : value
+                })}
+                />
+            </View>
+            }
           </View>
-          {this._renderVideos()}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
-  _renderVideos = () => {
+  _renderAnimation = () => {
     const { joinSucceed } = this.state;
+    const animationsrc = require('./assets/animation1.json');
+
     return joinSucceed ? (
       <View style={styles.fullView}>
-        <RtcLocalView.SurfaceView
-          style={styles.max}
-          channelId={this.state.channelName}
-          renderMode={VideoRenderMode.Hidden}
-        />
-        {this._renderRemoteVideos()}
+          <LottieView
+            ref={this.animation}
+            source={animationsrc}
+            style={styles.animation}
+          />
+          <Text style={{textAlign:'center'}}>{this.state.pitch}</Text>
       </View>
     ) : null;
-  };
-
-  _renderRemoteVideos = () => {
-    const { peerIds } = this.state;
-    return (
-      <ScrollView
-        style={styles.remoteContainer}
-        contentContainerStyle={{ paddingHorizontal: 2.5 }}
-        horizontal={true}
-      >
-        {peerIds.map((value) => {
-          return (
-            <RtcRemoteView.SurfaceView
-              style={styles.remote}
-              uid={value}
-              channelId={this.state.channelName}
-              renderMode={VideoRenderMode.Hidden}
-              zOrderMediaOverlay={true}
-            />
-          );
-        })}
-      </ScrollView>
-    );
   };
 }
