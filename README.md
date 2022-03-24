@@ -1,4 +1,8 @@
-# Agora React Native Demo
+# Agora React Native With Lottie Animation Demo
+
+![WhatsApp Image 2022-03-24 at 12 42 26](https://user-images.githubusercontent.com/61331945/159889046-45c1f9f4-3ffa-487b-a680-792010db46e6.jpeg)
+![WhatsApp Image 2022-03-24 at 12 42 27 (1)](https://user-images.githubusercontent.com/61331945/159889067-3c16a10b-4046-4736-88ac-6f957c6351ee.jpeg)
+
 
 Quickstart for group video calls on [React Native SDK](https://facebook.github.io/react-native/) using Agora.io SDK.
 Use this guide to quickly start a multiple user group call.
